@@ -1,14 +1,20 @@
 <html>
   <head>
-    <meta
+    <!-- <meta
       http-equiv="Content-Security-Policy"
       content="default-src * 'unsafe-inline'; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: 'unsafe-inline'; connect-src * 'unsafe-inline'; frame-src *;"
-    />
+    /> -->
   </head>
   <body>
-    <button type="button" onclick="getLocation()">Tests</button>
+    <button type="button" id="CreateRoomButton">Create Room</button>
+    <button type="button" id="DeleteRoomButton">Delete Room</button>
+    <button type="button" id="JoinRoomButton">Join Room</button>
+    <button type="button" id="LogInButton">Login</button>
+    <button type="button" id="LogOutButton">Logout</button>
+    <button type="button" id="TestButton">Test Button</button>
     <div id="log"></div>
-
-    <script type="text/javascript" src="./scripts.js"></script>
+    <script type="module" src="./js/firebaseServices.js"></script>
+    <script type="module" src="./js/locationServices.js"></script>
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>
