@@ -30,10 +30,8 @@ let App = class {
       EnableById('LogInButton', false);
       EnableById('LogOutButton', true);
     });
-  }
 
-  OnLocation(pos) {
-    console.log(pos);
+    this.DisplayUser();
   }
 
   async CreateRoom(name, password) {
@@ -112,6 +110,7 @@ let App = class {
 
   Update() {
     this.UpdateUserLocation();
+    this.DisplayUser();
 
     setTimeout(() => this.Update(), AppOptions.tickRateMS);
   }
@@ -132,8 +131,8 @@ let App = class {
           this.userService.currentUser.uuid,
           this.userService.currentUser
         );
+        this.userService.CacheUser();
       }
-      this.DisplayUser();
     });
   }
 
