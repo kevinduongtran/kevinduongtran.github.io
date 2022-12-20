@@ -12,6 +12,7 @@ export class UserServices {
       displayName: displayName,
       location: {},
     };
+
     if (callback) callback(this.currentUser);
   }
 
@@ -23,7 +24,27 @@ export class UserServices {
     return this.currentUser;
   }
 
-  Logout() {
+  Logout(callback) {
+    let uuid = this.currentUser.uuid;
     this.currentUser = undefined;
+    this.ClearUserCache();
+
+    if (callback) callback(uuid);
+  }
+
+  CacheUser() {
+    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+  }
+
+  ClearUserCache() {
+    localStorage.removeItem('currentUser');
+  }
+
+  LoadUser(success, failure) {
+    let tempUser = localStorage.getItem('currentUser');
+    if (tempUser != null) {
+      this.currentUser = JSON.parse(tempUser);
+      success();
+    }
   }
 }

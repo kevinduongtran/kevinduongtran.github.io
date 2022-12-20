@@ -24,6 +24,12 @@ let App = class {
     EnableById('JoinRoomButton', false);
     EnableById('LogInButton', true);
     EnableById('LogOutButton', false);
+
+    this.userService.LoadUser(() => {
+      EnableById('JoinRoomButton', true);
+      EnableById('LogInButton', false);
+      EnableById('LogOutButton', true);
+    });
   }
 
   OnLocation(pos) {
@@ -78,8 +84,9 @@ let App = class {
   Login(displayName) {
     this.userService.Login(displayName, this.OnLogin);
   }
+
   Logout() {
-    this.userService.Logout();
+    this.userService.Logout(this.OnLogout);
   }
 
   OnExit() {
@@ -89,15 +96,23 @@ let App = class {
 
   OnLogin(user) {
     self.firebaseService.AddUser(user);
+    self.userService.CacheUser();
     self.UpdateUserLocation();
 
     EnableById('JoinRoomButton', true);
     EnableById('LogInButton', false);
     EnableById('LogOutButton', true);
+    self.DisplayUser();
+  }
+
+  OnLogout(uuid) {
+    self.firebaseService.UpdateUser(uuid, null);
+    self.DisplayUser();
   }
 
   Update() {
     this.UpdateUserLocation();
+
     setTimeout(() => this.Update(), AppOptions.tickRateMS);
   }
 
@@ -117,10 +132,15 @@ let App = class {
           this.userService.currentUser.uuid,
           this.userService.currentUser
         );
-
-        logText.innerHTML = JSON.stringify(this.userService.currentUser);
       }
+      this.DisplayUser();
     });
+  }
+
+  DisplayUser() {
+    let currentUser = this.userService.currentUser;
+    logText.innerHTML =
+      currentUser == undefined ? '' : JSON.stringify(currentUser);
   }
 };
 
@@ -144,22 +164,10 @@ document.getElementById('JoinRoomButton').addEventListener('click', () => {
 // });
 document.getElementById('LogInButton').addEventListener('click', () => {
   let displayName = window.prompt('Display Name', 'kevin');
-  app.Login(displayName);
+  if (displayName != null) app.Login(displayName);
 });
-
-var unloaded = false;
-window.addEventListener('beforeunload', function (e) {
-  if (unloaded) return;
-  console.log('App Exited');
-  app.OnExit();
-});
-
-window.addEventListener('visibilitychange', function (e) {
-  if (document.visibilityState == 'hidden') {
-    if (unloaded) return;
-    console.log('App Exited');
-    app.OnExit();
-  }
+document.getElementById('LogOutButton').addEventListener('click', () => {
+  app.Logout();
 });
 
 function EnableById(id, enabled) {
