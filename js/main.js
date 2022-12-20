@@ -100,17 +100,20 @@ let App = class {
     EnableById('JoinRoomButton', true);
     EnableById('LogInButton', false);
     EnableById('LogOutButton', true);
-    self.DisplayUser();
   }
 
   OnLogout(uuid) {
     self.firebaseService.UpdateUser(uuid, null);
     self.DisplayUser();
+    EnableById('CreateRoomButton', false);
+    EnableById('DeleteRoomButton', false);
+    EnableById('JoinRoomButton', false);
+    EnableById('LogInButton', true);
+    EnableById('LogOutButton', false);
   }
 
   Update() {
     this.UpdateUserLocation();
-    this.DisplayUser();
 
     setTimeout(() => this.Update(), AppOptions.tickRateMS);
   }
@@ -132,6 +135,7 @@ let App = class {
           this.userService.currentUser
         );
         this.userService.CacheUser();
+        self.DisplayUser();
       }
     });
   }
