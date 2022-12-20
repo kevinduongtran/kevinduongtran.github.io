@@ -146,10 +146,21 @@ document.getElementById('LogInButton').addEventListener('click', () => {
   let displayName = window.prompt('Display Name', 'kevin');
   app.Login(displayName);
 });
-window.onbeforeunload = () => {
+
+var unloaded = false;
+window.addEventListener('beforeunload', function (e) {
+  if (unloaded) return;
   console.log('App Exited');
   app.OnExit();
-};
+});
+
+window.addEventListener('visibilitychange', function (e) {
+  if (document.visibilityState == 'hidden') {
+    if (unloaded) return;
+    console.log('App Exited');
+    app.OnExit();
+  }
+});
 
 function EnableById(id, enabled) {
   document.getElementById(id).hidden = !enabled;

@@ -1,4 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js';
 import {
   getDatabase,
   ref,
@@ -28,6 +29,7 @@ export class FirebaseServices {
 
     let app = initializeApp(firebaseConfig);
     this.db = getDatabase(app);
+    getAnalytics(app);
 
     this.WatchConnection();
   }
