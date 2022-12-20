@@ -176,3 +176,10 @@ document.getElementById('LogOutButton').addEventListener('click', () => {
 function EnableById(id, enabled) {
   document.getElementById(id).hidden = !enabled;
 }
+
+const myModal = document.getElementById('myModal');
+const myInput = document.getElementById('myInput');
+
+myModal.addEventListener('shown.bs.modal', () => {
+  myInput.focus();
+});
