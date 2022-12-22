@@ -5,12 +5,10 @@ export class LocationServices {
     console.log('Init Location Services');
   }
 
-  GetLocation(callback) {
-    navigator.geolocation.getCurrentPosition(
-      callback,
-      this.error,
-      AppOptions.geoLocationOptions
-    );
+  async GetLocation() {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition((locationData) => resolve(locationData), this.error, AppOptions.geoLocationOptions);
+    });
   }
   // success(pos) {
   //   var crd = pos.coords;

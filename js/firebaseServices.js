@@ -1,18 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
 import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js';
-import {
-  getDatabase,
-  ref,
-  set,
-  push,
-  onValue,
-  query,
-  orderByKey,
-  get,
-  equalTo,
-  update,
-  remove,
-} from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+import { getDatabase, ref, set, push, query, orderByKey, get, equalTo, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
 
 export class FirebaseServices {
   constructor() {
@@ -69,10 +57,8 @@ export class FirebaseServices {
     const snap = await get(reference);
     return snap.val();
   }
-  async UpdateValue(path, object) {
+  async UpdateValues(updates) {
     const reference = ref(this.db);
-    const updates = {};
-    updates[path] = object;
     await update(reference, updates);
   }
   async SetValue(path, object) {
@@ -102,6 +88,13 @@ export class FirebaseServices {
   }
   async DeleteUser(uuid) {
     await remove(ref(this.db), `/users/${uuid}/`);
+  }
+
+  async Subscribe(callback) {
+    const reference = ref(this.db, 'rooms/0');
+    return onValue(reference, (snapshot) => {
+      callback(snapshot.val());
+    });
   }
 
   // async DeleteFromList(path) {
