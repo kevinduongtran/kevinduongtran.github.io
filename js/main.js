@@ -224,7 +224,6 @@ let App = class {
   };
   async UpdateUserLocation() {
     try {
-      console.log('updatingloc');
       // load location into location service
       let coords = { id: Utils.uuidv4() };
       coords = { ...coords, ...this.locationService.coords };
@@ -243,7 +242,6 @@ let App = class {
           if (playerPath) {
             updates[playerPath] = this.userService.currentUser;
           }
-          console.log('updatingloc');
           await this.firebaseService.UpdateValues(updates);
         }
       }
