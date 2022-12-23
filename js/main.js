@@ -21,10 +21,22 @@ let App = class {
     this.firebaseService = new FirebaseServices();
     this.userService = new UserServices(this);
 
-    this.firebaseService.Subscribe(this.OnData);
-    this.locationService.ScanLocation(AppOptions.fakeLocation);
+    this.RequestPassword();
+  }
 
-    this.Update();
+  async RequestPassword() {
+    const password = await this.firebaseService.GetValue('rooms/0/password');
+    console.log(password);
+    let pass = prompt('Password?');
+
+    if (pass === password) {
+      this.firebaseService.Subscribe(this.OnData);
+      this.locationService.ScanLocation(AppOptions.fakeLocation);
+      this.Update();
+    } else {
+      alert('Incorrect password! Talk to dev for access');
+      window.close();
+    }
   }
 
   InitEnv() {
