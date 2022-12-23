@@ -6,13 +6,15 @@
     <meta name="viewport" content="minimal-ui" />
     <meta name="viewport" content="width=device-width, minimal-ui" />
 
-    <title>Bootstrap demo</title>
+    <title>TACMAP</title>
     <link rel="stylesheet" href="./css//bootstrap.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" />
 
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="./js/plugins/leaflet.gratcule.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -21,7 +23,7 @@
           <i class="bi bi-play"></i>
         </a>
         <!-- <button class="btn btn-outline-primary p-2" type="button" id="resetDB">RESET</button> -->
-        <a class="navbar-brand" href="#">TACMAP</a>
+        <a class="navbar-brand" href="#">.</a>
       </div>
     </nav>
 
@@ -71,10 +73,10 @@
             <button class="btn btn-sm btn-outline-primary d-inline float-end me-2" id="disconnect-button" type="button">
               <i class="bi bi-box-arrow-right"></i>
             </button>
-            <button class="btn btn-sm btn-outline-primary d-inline float-end me-2" id="log-button" type="button" data-bs-toggle="offcanvas" href="#logOffCanvas" role="button" aria-controls="logOffCanvas">
+            <button class="btn btn-sm btn-outline-primary d-inline float-end me-2 dev-only" id="log-button" type="button" data-bs-toggle="offcanvas" href="#logOffCanvas" role="button" aria-controls="logOffCanvas">
               <i class="bi bi-code-square"></i>
             </button>
-            <button class="btn btn-sm btn-outline-primary d-inline float-end me-2" id="reset-db-button" type="button">
+            <button class="btn btn-sm btn-outline-primary d-inline float-end me-2 dev-only" id="reset-db-button" type="button">
               <i class="bi bi-database-gear"></i>
             </button>
           </div>
@@ -121,7 +123,6 @@
     <div class="main container-fluid" id="map"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/underscore@1.13.6/underscore-umd-min.js"></script> -->
     <script type="module" src="./js/main.js"></script>
   </body>
 </html>

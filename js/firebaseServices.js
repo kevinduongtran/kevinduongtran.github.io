@@ -1,19 +1,12 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
 import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js';
 import { getDatabase, ref, set, push, query, orderByKey, get, equalTo, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
+import AppOptions from './config.js';
 
 export class FirebaseServices {
   constructor() {
     console.log('Init Firebase Services');
-    const firebaseConfig = {
-      apiKey: 'AIzaSyB1eJwaJojvqt3WvJ4pEv5rLZmI-kFhojA',
-      authDomain: 'tacmap-b51b4.firebaseapp.com',
-      databaseURL: 'https://tacmap-b51b4-default-rtdb.firebaseio.com',
-      projectId: 'tacmap-b51b4',
-      storageBucket: 'tacmap-b51b4.appspot.com',
-      messagingSenderId: '967896842326',
-      appId: '1:967896842326:web:5c2e93fc457c2aa8febbf7',
-    };
+    const firebaseConfig = AppOptions.firebaseVars[AppOptions.env];
 
     let app = initializeApp(firebaseConfig);
     this.db = getDatabase(app);

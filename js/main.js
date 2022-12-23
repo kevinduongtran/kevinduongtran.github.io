@@ -15,7 +15,7 @@ let App = class {
 
   constructor() {
     Utils.InitLogs();
-
+    this.InitEnv();
     self = this;
     this.locationService = new LocationServices(this);
     this.firebaseService = new FirebaseServices();
@@ -25,6 +25,20 @@ let App = class {
     this.locationService.ScanLocation(false);
 
     this.Update();
+  }
+
+  InitEnv() {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    if (params && params.env && params.env == 'dev') {
+      AppOptions.env = 'dev';
+    } else {
+      const devElements = document.getElementsByClassName('dev-only');
+
+      Array.from(devElements).forEach(function (element, index, array) {
+        element.style.visibility = 'hidden';
+      });
+    }
   }
 
   async OnData(snap) {
@@ -50,7 +64,7 @@ let App = class {
     try {
       this.locationService.ScanLocation(false);
       if (this.userInSquad) this.UpdateUserLocation();
-
+      console.log(this.locationService.map.getZoom());
       setTimeout(() => this.Update(), AppOptions.tickRateMS);
     } catch (err) {
       Utils.error(err);
