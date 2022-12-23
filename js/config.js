@@ -5,5 +5,6 @@ var AppOptions = {
     maximumAge: 0,
   },
   tickRateMS: 10000,
+  updateMeters: 3,
 };
 export default AppOptions;

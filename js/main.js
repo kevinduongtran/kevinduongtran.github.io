@@ -4,6 +4,19 @@ import { LocationServices } from './locationServices.js';
 import { UserServices } from './userServices.js';
 import Utils from './utils.js';
 
+const getCircularReplacer = () => {
+  const seen = new WeakSet();
+  return (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+};
+
 let App = class {
   locationService;
   userService;
@@ -13,6 +26,7 @@ let App = class {
   currentUser;
 
   constructor() {
+    this.InitLog();
     self = this;
     this.locationService = new LocationServices();
     this.firebaseService = new FirebaseServices();
@@ -23,130 +37,234 @@ let App = class {
     this.Update();
   }
 
+  InitLog() {
+    var log = document.getElementById('logTextBody');
+    ['log', 'debug', 'info', 'warn', 'error'].forEach(function (verb) {
+      console[verb] = (function (method, verb, log) {
+        return function () {
+          method.apply(console, arguments);
+          var msg = document.createElement('div');
+          msg.classList.add(verb);
+          msg.classList.add('log-message');
+          var text = Array.prototype.slice.call(arguments);
+          text = typeof text === 'object' ? JSON.stringify(text) : text.toString();
+          var output = text;
+          msg.textContent = verb + ': ' + output;
+          log.appendChild(msg);
+        };
+      })(console[verb], verb, log);
+    });
+  }
+
   async OnData(snap) {
-    self.data = snap;
-    document.querySelectorAll(`.from-template`).forEach((el) => el.remove());
-    self.data.teams.forEach((team, t) => {
-      let teamTemplate = 'team-template';
-      let teamContainer = 'teams-container';
-      let teamReplacements = { teamName: team.teamName, teamId: team.id };
+    try {
+      self.data = snap;
 
-      Utils.FillTemplate(teamTemplate, teamContainer, teamReplacements);
-      team.squads.forEach((squad, s) => {
-        let squadTemplate = `squad-template-${team.id}`;
-        let squadTemplateContainer = `squad-container-${team.id}`;
-        let squadReplacements = { squadId: squad.id, squadNumber: squad.squadNumber };
+      self.UpdateMap();
+      self.RenderTemplates();
+      await self.CheckIfInSquad();
+    } catch (err) {
+      Utils.error(err);
+    }
+  }
 
-        Utils.FillTemplate(squadTemplate, squadTemplateContainer, squadReplacements);
-        document.getElementById(`squad-${squad.id}`).addEventListener('click', () => {
-          self.JoinSquad(team.id, squad.id);
+  RenderTemplates() {
+    try {
+      document.querySelectorAll(`.from-template`).forEach((el) => el.remove());
+      self.data.teams.forEach((team, t) => {
+        let teamTemplate = 'team-template';
+        let teamContainer = 'teams-container';
+        let teamReplacements = { teamName: team.teamName, teamId: team.id };
+
+        Utils.FillTemplate(teamTemplate, teamContainer, teamReplacements);
+        team.squads.forEach((squad, s) => {
+          let squadTemplate = `squad-template-${team.id}`;
+          let squadTemplateContainer = `squad-container-${team.id}`;
+          let squadReplacements = { squadId: squad.id, squadNumber: squad.squadNumber };
+
+          Utils.FillTemplate(squadTemplate, squadTemplateContainer, squadReplacements);
+          document.getElementById(`squad-${squad.id}`).addEventListener('click', () => {
+            self.JoinSquad(team.id, squad.id);
+          });
+          if (squad.players != null) {
+            squad.players.forEach((player, p) => {
+              let squadMemberTemplate = `squad-member-template-${squad.id}`;
+              let squadContainerTemplate = `squad-member-container-${squad.id}`;
+              let squadMemberReplacements = { username: player.username, squadLeaderTag: p == 0 ? `<i class="bi bi-star-fill me-1"></i>` : `<i class="bi me-4"></i>` };
+
+              Utils.FillTemplate(squadMemberTemplate, squadContainerTemplate, squadMemberReplacements);
+            });
+          }
         });
-        if (squad.players != null) {
-          squad.players.forEach((player, p) => {
-            let squadMemberTemplate = `squad-member-template-${squad.id}`;
-            let squadContainerTemplate = `squad-member-container-${squad.id}`;
-            let squadMemberReplacements = { username: player.username, squadLeaderTag: p == 0 ? `<i class="bi bi-star-fill me-1"></i>` : `<i class="bi me-4"></i>` };
+      });
+    } catch (err) {
+      Utils.error(err);
+    }
+  }
 
-            Utils.FillTemplate(squadMemberTemplate, squadContainerTemplate, squadMemberReplacements);
+  UpdateMap() {
+    try {
+      let lat = this.data.map.location.lat;
+      let long = this.data.map.location.long;
+      let zoom = this.data.map.zoom;
+      let playerTeam;
+      this.locationService.UpdateMap(lat, long, zoom);
+
+      let players = [];
+      let markerData = [];
+      // get all players and their markers
+
+      for (const [t, team] of this.data.teams.entries()) {
+        for (const [s, squad] of team.squads.entries()) {
+          if (squad.players) {
+            for (const [p, player] of squad.players.entries()) {
+              players.push(player);
+            }
+          }
+        }
+      }
+      players.forEach((player) => {
+        if (player.location) {
+          markerData.push({
+            type: 'player-marker',
+            owner: player.username,
+            lat: player.location.lat,
+            long: player.location.long,
+            id: player.location.id,
           });
         }
       });
-    });
-    self.userInSquad = self.userService.GetPlayerPath(self.data) != undefined;
-    if (self.userInSquad) await self.UpdateUserLocation();
+      this.locationService.UpdateMarkers(markerData);
+    } catch (err) {
+      Utils.error(err);
+    }
+  }
+
+  async CheckIfInSquad() {
+    try {
+      let path = this.userService.GetPlayerPath(this.data);
+      this.userInSquad = path != undefined;
+      if (this.userInSquad) await this.UpdateUserLocation();
+    } catch (err) {
+      Utils.error(err);
+    }
   }
 
   async JoinSquad(teamId, squadId) {
-    let newTeamIndex, newSquadIndex;
-    let updates = {};
+    try {
+      let newTeamIndex, newSquadIndex;
+      let updates = {};
 
-    let root = this.data.teams;
+      let root = this.data.teams;
 
-    // get index of teamId and squad id
-    newTeamIndex = root.findIndex((el) => el.id == teamId).toString();
-    newSquadIndex = root[newTeamIndex].squads.findIndex((el) => el.id == squadId).toString();
+      // get index of teamId and squad id
+      newTeamIndex = root.findIndex((el) => el.id == teamId).toString();
+      newSquadIndex = root[newTeamIndex].squads.findIndex((el) => el.id == squadId).toString();
 
-    // get list of players in squad
-    let playersInNewSquad = root[newTeamIndex].squads[newSquadIndex].players;
+      // get list of players in squad
+      let playersInNewSquad = root[newTeamIndex].squads[newSquadIndex].players;
 
-    // check if player alreay in squad
-    if (playersInNewSquad != undefined && playersInNewSquad.some((player) => player.sessionId == this.userService.currentUser.sessionId)) {
-      console.log('player already in squad');
-      return;
+      // check if player alreay in squad
+      if (playersInNewSquad != undefined && playersInNewSquad.some((player) => player.sessionId == this.userService.currentUser.sessionId)) {
+        return;
+      }
+
+      let playerPath = this.userService.GetPlayerPath(this.data);
+
+      if (playerPath) {
+        updates[playerPath] = null;
+      }
+
+      // define a player object
+      let currentPlayer = { username: this.userService.currentUser.username, sessionId: this.userService.currentUser.sessionId };
+
+      // if there are no players in squad, just add the player as a squad leader
+      // otherwise, append player to list
+      if (playersInNewSquad == null) {
+        updates[`rooms/0/teams/${newTeamIndex}/squads/${newSquadIndex}/players`] = [currentPlayer];
+      } else {
+        playersInNewSquad.push(currentPlayer);
+        updates[`rooms/0/teams/${newTeamIndex}/squads/${newSquadIndex}/players/`] = playersInNewSquad;
+      }
+
+      await this.firebaseService.UpdateValues(updates);
+      await this.AssignSquadLeaders();
+      await this.UpdateUserLocation();
+      this.userService.userInSquad = true;
+    } catch (err) {
+      Utils.error(err);
     }
-
-    let playerPath = this.userService.GetPlayerPath(this.data);
-
-    if (playerPath) {
-      updates[playerPath] = null;
-    }
-
-    // define a player object
-    let currentPlayer = { username: this.userService.currentUser.username, sessionId: this.userService.currentUser.sessionId };
-
-    // if there are no players in squad, just add the player as a squad leader
-    // otherwise, append player to list
-    if (playersInNewSquad == null) {
-      updates[`rooms/0/teams/${newTeamIndex}/squads/${newSquadIndex}/players`] = [currentPlayer];
-    } else {
-      playersInNewSquad.push(currentPlayer);
-      updates[`rooms/0/teams/${newTeamIndex}/squads/${newSquadIndex}/players/`] = playersInNewSquad;
-    }
-
-    await this.firebaseService.UpdateValues(updates);
-    await this.AssignSquadLeaders();
-    await this.UpdateUserLocation();
-    this.userService.userInSquad = true;
   }
 
   Update() {
-    if (this.userInSquad) this.UpdateUserLocation();
-    setTimeout(() => this.Update(), AppOptions.tickRateMS);
+    try {
+      if (this.userInSquad) this.UpdateUserLocation();
+
+      setTimeout(() => this.Update(), AppOptions.tickRateMS);
+    } catch (err) {
+      Utils.error(err);
+    }
   }
 
+  lastCoord = {
+    lat: 0,
+    long: 0,
+  };
   async UpdateUserLocation() {
-    let location = await this.locationService.GetLocation();
-
-    // if currext user exists
-    if (this.userService.currentUser) {
-      console.log('ping', location);
-      //add location to user object
-      this.userService.currentUser.location = {
+    try {
+      console.log('getting location...');
+      let location = await this.locationService.GetLocation();
+      let coord = {
         lat: location.coords.latitude,
         long: location.coords.longitude,
+        id: Utils.uuidv4(),
       };
+      console.log(coord);
+      console.log('done');
 
-      const updates = {};
-      let playerPath = this.userService.GetPlayerPath(this.data);
-      if (playerPath) {
-        updates[playerPath] = this.userService.currentUser;
+      let distance = Utils.distance(coord.lat, coord.long, this.lastCoord.lat, this.lastCoord.long);
+      if (distance > AppOptions.updateMeters) {
+        // if currext user exists
+        if (this.userService.currentUser) {
+          //add location to user object
+          this.userService.currentUser.location = coord;
+
+          const updates = {};
+          let playerPath = this.userService.GetPlayerPath(this.data);
+          if (playerPath) {
+            updates[playerPath] = this.userService.currentUser;
+          }
+          await this.firebaseService.UpdateValues(updates);
+        }
       }
-      await this.firebaseService.UpdateValues(updates);
-      // this.userService.UpdateUser(this.userService.currentUser);
 
-      // update user on firebase
-      // this.firebaseService.UpdateUser(this.userService.currentUser.uuid, this.userService.currentUser);
-      // this.userService.CacheUser();
-      // self.DisplayUser();
+      this.lastCoord = coord;
+    } catch (err) {
+      console.log(err);
+      Utils.error(err);
     }
   }
 
   async AssignSquadLeaders() {
-    let data = await this.firebaseService.GetValue('rooms/0');
+    try {
+      let data = await this.firebaseService.GetValue('rooms/0');
 
-    for (let t = 0; t < data.teams.length; t++) {
-      const team = data.teams[t];
-      for (let s = 0; s < team.squads.length; s++) {
-        let players = data.teams[t].squads[s].players;
-        if (players) {
-          players = players.filter(function () {
-            return true;
-          });
-          data.teams[t].squads[s].players = players;
+      for (let t = 0; t < data.teams.length; t++) {
+        const team = data.teams[t];
+        for (let s = 0; s < team.squads.length; s++) {
+          let players = data.teams[t].squads[s].players;
+          if (players) {
+            players = players.filter(function () {
+              return true;
+            });
+            data.teams[t].squads[s].players = players;
+          }
         }
       }
+      await this.firebaseService.SetValue('rooms/0', data);
+    } catch (err) {
+      Utils.error(err);
     }
-    await this.firebaseService.SetValue('rooms/0', data);
   }
 };
 
