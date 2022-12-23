@@ -44,15 +44,16 @@ let App = class {
     const params = Object.fromEntries(urlSearchParams.entries());
     if (params && params.env && params.env == 'dev') {
       AppOptions.env = 'dev';
-      if (params.fakeLocation == 'true') {
-        AppOptions.fakeLocation = true;
-      }
     } else {
       const devElements = document.getElementsByClassName('dev-only');
 
       Array.from(devElements).forEach(function (element, index, array) {
         element.style.visibility = 'hidden';
       });
+    }
+
+    if (params && params.fakeLocation == 'true') {
+      AppOptions.fakeLocation = true;
     }
   }
 
