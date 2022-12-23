@@ -22,7 +22,7 @@ let App = class {
     this.userService = new UserServices(this);
 
     this.firebaseService.Subscribe(this.OnData);
-    this.locationService.ScanLocation(true);
+    this.locationService.ScanLocation(false);
 
     this.Update();
   }
@@ -48,7 +48,7 @@ let App = class {
 
   Update() {
     try {
-      this.locationService.ScanLocation(true);
+      this.locationService.ScanLocation(false);
       if (this.userInSquad) this.UpdateUserLocation();
 
       setTimeout(() => this.Update(), AppOptions.tickRateMS);
