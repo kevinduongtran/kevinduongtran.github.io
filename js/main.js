@@ -4,19 +4,6 @@ import { LocationServices } from './locationServices.js';
 import { UserServices } from './userServices.js';
 import Utils from './utils.js';
 
-const getCircularReplacer = () => {
-  const seen = new WeakSet();
-  return (key, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return;
-      }
-      seen.add(value);
-    }
-    return value;
-  };
-};
-
 let App = class {
   locationService;
   userService;
@@ -24,36 +11,20 @@ let App = class {
   data;
   username;
   currentUser;
+  initChecked = false;
 
   constructor() {
-    this.InitLog();
+    Utils.InitLogs();
+
     self = this;
-    this.locationService = new LocationServices();
+    this.locationService = new LocationServices(this);
     this.firebaseService = new FirebaseServices();
     this.userService = new UserServices(this);
 
     this.firebaseService.Subscribe(this.OnData);
+    this.locationService.ScanLocation(true);
 
     this.Update();
-  }
-
-  InitLog() {
-    var log = document.getElementById('logTextBody');
-    ['log', 'debug', 'info', 'warn', 'error'].forEach(function (verb) {
-      console[verb] = (function (method, verb, log) {
-        return function () {
-          method.apply(console, arguments);
-          var msg = document.createElement('div');
-          msg.classList.add(verb);
-          msg.classList.add('log-message');
-          var text = Array.prototype.slice.call(arguments);
-          text = typeof text === 'object' ? JSON.stringify(text, getCircularReplacer()) : text.toString();
-          var output = text;
-          msg.textContent = verb + ': ' + output;
-          log.appendChild(msg);
-        };
-      })(console[verb], verb, log);
-    });
   }
 
   async OnData(snap) {
@@ -62,7 +33,25 @@ let App = class {
 
       self.UpdateMap();
       self.RenderTemplates();
-      await self.CheckIfInSquad();
+      if (!self.initChecked) {
+        self.initChecked = true;
+        self.InitialDataCheck();
+      }
+    } catch (err) {
+      Utils.error(err);
+    }
+  }
+
+  InitialDataCheck() {
+    this.CheckIfInSquad();
+  }
+
+  Update() {
+    try {
+      this.locationService.ScanLocation(true);
+      if (this.userInSquad) this.UpdateUserLocation();
+
+      setTimeout(() => this.Update(), AppOptions.tickRateMS);
     } catch (err) {
       Utils.error(err);
     }
@@ -107,7 +96,6 @@ let App = class {
       let lat = this.data.map.location.lat;
       let long = this.data.map.location.long;
       let zoom = this.data.map.zoom;
-      let playerTeam;
       this.locationService.UpdateMap(lat, long, zoom);
 
       let players = [];
@@ -176,7 +164,12 @@ let App = class {
       }
 
       // define a player object
-      let currentPlayer = { username: this.userService.currentUser.username, sessionId: this.userService.currentUser.sessionId };
+      let currentPlayer = {
+        username: this.userService.currentUser.username,
+        sessionId: this.userService.currentUser.sessionId,
+        location: this.userService.currentUser.location,
+      };
+      console.log(currentPlayer);
 
       // if there are no players in squad, just add the player as a squad leader
       // otherwise, append player to list
@@ -187,20 +180,10 @@ let App = class {
         updates[`rooms/0/teams/${newTeamIndex}/squads/${newSquadIndex}/players/`] = playersInNewSquad;
       }
 
+      // await this.UpdateUserLocation();
       await this.firebaseService.UpdateValues(updates);
       await this.AssignSquadLeaders();
-      await this.UpdateUserLocation();
       this.userService.userInSquad = true;
-    } catch (err) {
-      Utils.error(err);
-    }
-  }
-
-  Update() {
-    try {
-      if (this.userInSquad) this.UpdateUserLocation();
-
-      setTimeout(() => this.Update(), AppOptions.tickRateMS);
     } catch (err) {
       Utils.error(err);
     }
@@ -212,35 +195,32 @@ let App = class {
   };
   async UpdateUserLocation() {
     try {
-      console.log('getting location...');
-      let location = await this.locationService.GetLocation();
-      let coord = {
-        lat: location.coords.latitude,
-        long: location.coords.longitude,
-        id: Utils.uuidv4(),
-      };
-      console.log(coord);
-      console.log('done');
+      console.log('updatingloc');
+      // load location into location service
+      let coords = { id: Utils.uuidv4() };
+      coords = { ...coords, ...this.locationService.coords };
 
-      let distance = Utils.distance(coord.lat, coord.long, this.lastCoord.lat, this.lastCoord.long);
-      if (distance > AppOptions.updateMeters) {
+      let shouldUpdate = Utils.distance(coords.lat, coords.long, this.lastCoord.lat, this.lastCoord.long) > AppOptions.updateMeters;
+
+      if (shouldUpdate) {
         // if currext user exists
         if (this.userService.currentUser) {
           //add location to user object
-          this.userService.currentUser.location = coord;
+          this.userService.currentUser.location = coords;
 
+          // update user with new coords
           const updates = {};
           let playerPath = this.userService.GetPlayerPath(this.data);
           if (playerPath) {
             updates[playerPath] = this.userService.currentUser;
           }
+          console.log('updatingloc');
           await this.firebaseService.UpdateValues(updates);
         }
       }
 
-      this.lastCoord = coord;
+      this.lastCoord = coords;
     } catch (err) {
-      console.log(err);
       Utils.error(err);
     }
   }
@@ -270,7 +250,7 @@ let App = class {
 
 const app = new App();
 
-let resetDBButton = document.getElementById('resetDB');
+let resetDBButton = document.getElementById('reset-db-button');
 if (resetDBButton)
   resetDBButton.addEventListener('click', () => {
     app.firebaseService.SetValue('/', {
@@ -279,20 +259,31 @@ if (resetDBButton)
           gamemode: 'TDM',
           roomId: 'ea3f1eaf-f712-44eb-bd47-a2e783df974e',
           roomName: 'Cement Factory',
+          map: {
+            name: 'LVPP',
+            location: {
+              lat: 36.1390106,
+              long: -115.1765157,
+            },
+            zoom: 10,
+          },
           teams: [
             {
               id: 'efdcb41b-15ba-4b6a-8833-8eafe744e770',
               squads: [
                 {
                   id: '8fa53299-5b1e-4e34-a679-37b8c1b72124',
+                  players: [],
                   squadNumber: 1,
                 },
                 {
                   id: '514a5efc-149f-4d71-bbd1-9534d0bb6518',
+                  players: [],
                   squadNumber: 2,
                 },
                 {
                   id: '35633482-b82a-4852-a66e-697d82bd3121',
+                  players: [],
                   squadNumber: 3,
                 },
               ],
@@ -303,14 +294,17 @@ if (resetDBButton)
               squads: [
                 {
                   id: '17cf4d12-3115-4a44-9964-c5c4f3ee49f5',
+                  players: [],
                   squadNumber: 1,
                 },
                 {
                   id: 'cb64b16a-93c5-406e-83d7-a1d576b26c70',
+                  players: [],
                   squadNumber: 2,
                 },
                 {
                   id: '2fd3ad96-3dc4-4f12-b728-48f4f7389ba2',
+                  players: [],
                   squadNumber: 3,
                 },
               ],

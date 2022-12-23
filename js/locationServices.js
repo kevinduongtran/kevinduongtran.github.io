@@ -4,8 +4,11 @@ import Utils from './utils.js';
 export class LocationServices {
   map;
   markers = [];
-  constructor() {
+  coords = {};
+  rootApp;
+  constructor(app) {
     try {
+      this.rootApp = app;
       var mapOptions = {
         center: [36.157352, -115.1671312],
         // center: [36.651076, -114.5015082],
@@ -19,6 +22,26 @@ export class LocationServices {
       this.map.addLayer(layer);
     } catch (err) {
       Utils.error(err);
+    }
+  }
+
+  async ScanLocation(randomCoordinate) {
+    let location;
+    if (randomCoordinate) {
+      let start = [36.16360240464562, -115.18453981692234];
+      let randomGeo = Utils.randomGeo({ latitude: start[0], longitude: start[1] }, 20000);
+      location = {
+        coords: {
+          latitude: randomGeo.latitude,
+          longitude: randomGeo.longitude,
+        },
+      };
+    } else {
+      location = await this.GetLocation();
+    }
+    if (location) {
+      this.coords = { lat: location.coords.latitude, long: location.coords.longitude };
+      this.rootApp.userService.currentUser.location = this.coords;
     }
   }
 
