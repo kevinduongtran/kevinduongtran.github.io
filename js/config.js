@@ -1,5 +1,6 @@
 var AppOptions = {
   env: 'live',
+  fakeLocation: false,
   firebaseVars: {
     live: {
       apiKey: 'AIzaSyB1eJwaJojvqt3WvJ4pEv5rLZmI-kFhojA',
@@ -27,12 +28,12 @@ var AppOptions = {
   tickRateMS: 10000,
   updateMeters: 3,
   iconsMap: {
-    'team-member': `<i class="bi bi-circle-fill marker blue"></i>`,
-    'squad-leader': `<i class="bi bi-{{squadNumber}}-circle-fill marker blue"></i>`,
-    'squad-member': `<i class="bi bi-circle-fill marker green"></i>`,
-    'they-squad-leader': `<i class="bi bi-{{squadNumber}}-circle-fill marker green"></i>`,
-    'me-squad-leader': `<i class="bi bi-{{squadNumber}}-circle-fill marker yellow"></i>`,
-    me: `<i class="bi bi-circle-fill marker yellow"></i>`,
+    'team-member': `<img src="./css/player-team-icon.png"/>`,
+    'squadmate-squad-leader': `<img src="./css/player-squad-icon.png"/><span class="squad-number">{{squadNumber}}</span>`,
+    'squad-leader': `<img src="./css/player-team-icon.png"/><span class="squad-number">{{squadNumber}}</span>`,
+    'squad-member': `<img src="./css/player-squad-icon.png"/>`,
+    'me-squad-leader': `<img src="./css/me.png"/><span class="squad-number">{{squadNumber}}</span>`,
+    me: `<img src="./css/me.png"/>`,
   },
 };
 export default AppOptions;

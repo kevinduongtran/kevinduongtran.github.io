@@ -22,7 +22,7 @@ let App = class {
     this.userService = new UserServices(this);
 
     this.firebaseService.Subscribe(this.OnData);
-    this.locationService.ScanLocation(false);
+    this.locationService.ScanLocation(AppOptions.fakeLocation);
 
     this.Update();
   }
@@ -32,6 +32,9 @@ let App = class {
     const params = Object.fromEntries(urlSearchParams.entries());
     if (params && params.env && params.env == 'dev') {
       AppOptions.env = 'dev';
+      if (params.fakeLocation == 'true') {
+        AppOptions.fakeLocation = true;
+      }
     } else {
       const devElements = document.getElementsByClassName('dev-only');
 
@@ -62,7 +65,7 @@ let App = class {
 
   Update() {
     try {
-      this.locationService.ScanLocation(false);
+      this.locationService.ScanLocation(AppOptions.fakeLocation);
       if (this.userInSquad) this.UpdateUserLocation();
       console.log(this.locationService.map.getZoom());
       setTimeout(() => this.Update(), AppOptions.tickRateMS);
@@ -141,14 +144,19 @@ let App = class {
               let isMe = player.sessionId == this.userService.currentUser.sessionId;
 
               player['squadNumber'] = s;
+              // team
               if (isTeamMember) player['iconType'] = 'team-member';
-              if (isSquadMember) player['iconType'] = 'squad-member';
-              if (isSquadLeader) player['iconType'] = 'squad-leader';
-              if (isSquadLeader && isSquadMember) player['iconType'] = 'they-squad-leader';
-              if (isSquadLeader && isMe) player['iconType'] = 'me-squad-leader';
-              if (isMe) player['iconType'] = 'me';
+              if (isTeamMember && isSquadLeader) player['iconType'] = 'squad-leader';
 
-              players.push(player);
+              // my squad
+              if (isTeamMember && isSquadMember) player['iconType'] = 'squad-member';
+              if (isTeamMember && isSquadLeader && isSquadMember) player['iconType'] = 'squadmate-squad-leader';
+
+              // me
+              if (isMe) player['iconType'] = 'me';
+              if (isSquadLeader && isMe) player['iconType'] = 'me-squad-leader';
+
+              if (player['iconType']) players.push(player);
             }
           }
         }
