@@ -50,7 +50,6 @@ export class UserServices {
                 event.stopPropagation();
 
                 var input = document.getElementById('validationCustomUsername');
-                console.log(self);
                 if (input.value !== '') self.userService.UpdateUsername(input.value);
               },
               false

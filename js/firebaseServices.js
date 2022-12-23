@@ -89,21 +89,4 @@ export class FirebaseServices {
       callback(snapshot.val());
     });
   }
-
-  // async DeleteFromList(path) {
-  //   const reference = ref(this.db, path);
-  // }
-  // async AddToList(path, object) {
-  //   const reference = ref(this.db, path);
-  //   let currentList = await this.GetList(path);
-  //   console.log(currentList);
-  //   currentList.push(object);
-  //   await set(reference, currentList);
-  // }
-  // async GetList(path) {
-  //   const reference = ref(this.db, path);
-  //   const snap = await get(reference);
-  //   const arr = snap.val();
-  //   return arr == null ? [] : Object.keys(arr).map((key) => arr[key]);
-  // }
 }

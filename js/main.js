@@ -67,7 +67,7 @@ let App = class {
     try {
       this.locationService.ScanLocation(AppOptions.fakeLocation);
       if (this.userInSquad) this.UpdateUserLocation();
-      console.log(this.locationService.map.getZoom());
+
       setTimeout(() => this.Update(), AppOptions.tickRateMS);
     } catch (err) {
       Utils.error(err);
@@ -219,7 +219,6 @@ let App = class {
         sessionId: this.userService.currentUser.sessionId,
         location: this.userService.currentUser.location,
       };
-      console.log(currentPlayer);
 
       // if there are no players in squad, just add the player as a squad leader
       // otherwise, append player to list

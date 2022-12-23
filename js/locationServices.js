@@ -75,7 +75,6 @@ export class LocationServices {
   }
 
   AddMarker(lat, long, iconType, squadNumber) {
-    console.log(iconType);
     return new L.Marker([lat, long], {
       icon: new L.DivIcon({
         className: 'my-div-icon',
