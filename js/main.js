@@ -127,8 +127,7 @@ let App = class {
               let isMe = player.sessionId == this.userService.currentUser.sessionId;
 
               player['squadNumber'] = s;
-
-              player['iconType'] = 'team-member';
+              if (isTeamMember) player['iconType'] = 'team-member';
               if (isSquadMember) player['iconType'] = 'squad-member';
               if (isSquadLeader) player['iconType'] = 'squad-leader';
               if (isSquadLeader && isSquadMember) player['iconType'] = 'they-squad-leader';
