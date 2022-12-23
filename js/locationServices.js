@@ -36,21 +36,22 @@ export class LocationServices {
     this.map.setView([lat, long], zoom);
   }
 
-  AddMarker(lat, long) {
+  AddMarker(lat, long, text) {
     return new L.Marker([lat, long], {
       icon: new L.DivIcon({
         className: 'my-div-icon',
-        html: '<div class="marker border border-primary"><i class="bi bi-star-fill marker blue"></i></div>',
+        html: `<div class="marker border border-primary"><i class="bi bi-star-fill marker blue"></i></div><span class="marker-text">${text}</span>`,
       }),
     });
   }
 
   UpdateMarkers(markerData) {
+    console.log(markerData);
     try {
       this.markers.forEach((el) => el.markerElement.remove());
       this.markers = [];
       markerData.forEach((marker) => {
-        let markerObj = this.AddMarker(marker.lat, marker.long);
+        let markerObj = this.AddMarker(marker.lat, marker.long, marker.owner);
         markerObj.addTo(this.map);
         marker['markerElement'] = markerObj;
         this.markers.push(marker);

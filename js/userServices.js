@@ -14,7 +14,7 @@ export class UserServices {
 
   constructor(_app) {
     this.rootApp = _app;
-
+    this.userNameInput = document.getElementById('validationCustomUsername');
     this.AddEventListeners();
     this.LoadUser();
   }
@@ -48,7 +48,10 @@ export class UserServices {
                 form.classList.add('was-validated');
                 event.preventDefault();
                 event.stopPropagation();
-                if (this.userNameInput.value !== '') this.UpdateUsername(userNameInput.value);
+
+                var input = document.getElementById('validationCustomUsername');
+                console.log(self);
+                if (input.value !== '') self.userService.UpdateUsername(input.value);
               },
               false
             );
@@ -83,17 +86,17 @@ export class UserServices {
 
   async UpdateUsername(username) {
     try {
-      usernameDisplay.innerHTML = username;
+      this.usernameDisplay.innerHTML = username;
       this.username = username;
 
       const updates = {};
 
-      let data = await this.firebaseService.GetValue('rooms/0');
+      let data = await this.rootApp.firebaseService.GetValue('rooms/0');
 
       for (const [t, team] of data.teams.entries()) {
         for (const [s, squad] of team.squads.entries()) {
           if (squad.players) {
-            let p = squad.players.findIndex((player) => player.sessionId == this.userService.currentUser.sessionId);
+            let p = squad.players.findIndex((player) => player.sessionId == this.currentUser.sessionId);
             if (p >= 0) {
               let player = squad.players[p];
               player.username = username;
@@ -103,7 +106,7 @@ export class UserServices {
         }
       }
 
-      await this.firebaseService.UpdateValues(updates);
+      await this.rootApp.firebaseService.UpdateValues(updates);
     } catch (err) {
       Utils.error(err);
     }

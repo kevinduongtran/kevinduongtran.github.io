@@ -133,6 +133,22 @@
 .marker.blue {
   color: var(--bs-blue);
 }
+.marker-text {
+  position: absolute;
+  width: 300px;
+  left: 30px;
+  font-size: 28px;
+  font-weight: bolder;
+  text-transform: uppercase;
+  -webkit-text-stroke: 2px black;
+  /* text-shadow: 1px 1px black; */
+  /* background-color: black; */
+  color: white;
+  border-radius: 3px;
+  width: auto;
+  /* text-align: center; */
+  padding: 2px;
+}
 
 *,
 *::before,

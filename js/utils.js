@@ -41,7 +41,7 @@ const Utils = {
   },
   error: (msg) => {
     console.trace();
-    console.error(typeof msg === 'object' ? JSON.stringify(msg) : msg);
+    console.error(msg);
   },
 };
 export default Utils;

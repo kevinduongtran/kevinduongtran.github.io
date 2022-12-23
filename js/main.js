@@ -47,7 +47,7 @@ let App = class {
           msg.classList.add(verb);
           msg.classList.add('log-message');
           var text = Array.prototype.slice.call(arguments);
-          text = typeof text === 'object' ? JSON.stringify(text) : text.toString();
+          text = typeof text === 'object' ? JSON.stringify(text, getCircularReplacer()) : text.toString();
           var output = text;
           msg.textContent = verb + ': ' + output;
           log.appendChild(msg);
