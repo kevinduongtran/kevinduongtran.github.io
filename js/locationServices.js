@@ -56,7 +56,7 @@ export class LocationServices {
   }
 
   UpdateMap(lat, long, zoom) {
-    this.map.setView([lat, long], zoom);
+    this.map.setView([lat, long]);
   }
 
   UpdateMarkers(markerData) {

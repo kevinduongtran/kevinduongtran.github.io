@@ -96,7 +96,7 @@ let App = class {
       let lat = this.data.map.location.lat;
       let long = this.data.map.location.long;
       let zoom = this.data.map.zoom;
-      this.locationService.UpdateMap(lat, long, zoom);
+      // this.locationService.UpdateMap(lat, long, zoom);
 
       let players = [];
       let markerData = [];
@@ -128,7 +128,7 @@ let App = class {
 
               player['squadNumber'] = s;
 
-              if (isTeamMember) player['iconType'] = 'team-member';
+              player['iconType'] = 'team-member';
               if (isSquadMember) player['iconType'] = 'squad-member';
               if (isSquadLeader) player['iconType'] = 'squad-leader';
               if (isSquadLeader && isSquadMember) player['iconType'] = 'they-squad-leader';
