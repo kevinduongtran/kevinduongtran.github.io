@@ -102,10 +102,39 @@ let App = class {
       let markerData = [];
       // get all players and their markers
 
+      let currentTeam, currentSquad;
       for (const [t, team] of this.data.teams.entries()) {
         for (const [s, squad] of team.squads.entries()) {
           if (squad.players) {
             for (const [p, player] of squad.players.entries()) {
+              if (player.sessionId == this.userService.currentUser.sessionId) {
+                currentTeam = t;
+                currentSquad = s;
+              }
+            }
+          }
+        }
+      }
+
+      for (const [t, team] of this.data.teams.entries()) {
+        for (const [s, squad] of team.squads.entries()) {
+          if (squad.players) {
+            for (const [p, player] of squad.players.entries()) {
+              // all players
+              let isTeamMember = t == currentTeam;
+              let isSquadMember = s == currentSquad;
+              let isSquadLeader = p == 0;
+              let isMe = player.sessionId == this.userService.currentUser.sessionId;
+
+              player['squadNumber'] = s;
+
+              if (isTeamMember) player['iconType'] = 'team-member';
+              if (isSquadMember) player['iconType'] = 'squad-member';
+              if (isSquadLeader) player['iconType'] = 'squad-leader';
+              if (isSquadLeader && isSquadMember) player['iconType'] = 'they-squad-leader';
+              if (isSquadLeader && isMe) player['iconType'] = 'me-squad-leader';
+              if (isMe) player['iconType'] = 'me';
+
               players.push(player);
             }
           }
@@ -114,8 +143,8 @@ let App = class {
       players.forEach((player) => {
         if (player.location) {
           markerData.push({
-            type: 'player-marker',
-            owner: player.username,
+            squadNumber: player.squadNumber + 1,
+            iconType: player.iconType,
             lat: player.location.lat,
             long: player.location.long,
             id: player.location.id,

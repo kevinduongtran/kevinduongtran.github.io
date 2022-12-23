@@ -59,22 +59,12 @@ export class LocationServices {
     this.map.setView([lat, long], zoom);
   }
 
-  AddMarker(lat, long, text) {
-    return new L.Marker([lat, long], {
-      icon: new L.DivIcon({
-        className: 'my-div-icon',
-        html: `<div class="marker border border-primary"><i class="bi bi-star-fill marker blue"></i></div><span class="marker-text">${text}</span>`,
-      }),
-    });
-  }
-
   UpdateMarkers(markerData) {
-    console.log(markerData);
     try {
       this.markers.forEach((el) => el.markerElement.remove());
       this.markers = [];
       markerData.forEach((marker) => {
-        let markerObj = this.AddMarker(marker.lat, marker.long, marker.owner);
+        let markerObj = this.AddMarker(marker.lat, marker.long, marker.iconType, marker.squadNumber);
         markerObj.addTo(this.map);
         marker['markerElement'] = markerObj;
         this.markers.push(marker);
@@ -82,15 +72,25 @@ export class LocationServices {
     } catch (err) {
       Utils.error(err);
     }
-    // let newMarkers = markerData.filter((a) => !this.markers.some((b) => a.id === b.id));
-    // newMarkers.forEach((marker) => {
-    //   let markerObj = this.AddMarker(marker.lat, marker.long);
-    //   markerObj.addTo(this.map);
-    //   marker['markerElement'] = markerObj;
-    //   this.markers.push(marker);
-    // });
-    // this.markers.forEach((marker) => {
-    //   marker.markerElement.setLatLng(new L.LatLng(marker.lat, marker.long));
-    // });
   }
+
+  AddMarker(lat, long, iconType, squadNumber) {
+    return new L.Marker([lat, long], {
+      icon: new L.DivIcon({
+        className: 'my-div-icon',
+        html: `${AppOptions.iconsMap[iconType].toString().replace('{{squadNumber}}', squadNumber)}`,
+      }),
+    });
+  }
+
+  // let newMarkers = markerData.filter((a) => !this.markers.some((b) => a.id === b.id));
+  // newMarkers.forEach((marker) => {
+  //   let markerObj = this.AddMarker(marker.lat, marker.long);
+  //   markerObj.addTo(this.map);
+  //   marker['markerElement'] = markerObj;
+  //   this.markers.push(marker);
+  // });
+  // this.markers.forEach((marker) => {
+  //   marker.markerElement.setLatLng(new L.LatLng(marker.lat, marker.long));
+  // });
 }

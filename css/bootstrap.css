@@ -133,6 +133,12 @@
 .marker.blue {
   color: var(--bs-blue);
 }
+.marker.yellow {
+  color: var(--bs-yellow);
+}
+.marker.green {
+  color: var(--bs-green);
+}
 .marker-text {
   position: absolute;
   width: 300px;
