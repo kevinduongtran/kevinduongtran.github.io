@@ -18,6 +18,12 @@ const Constants = {
       appId: "1:278955153095:web:dc491f9539c91be1e0d0e2",
     },
   },
+  geoLocationOptions: {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0,
+  },
+  tickRateMS: 10000,
 };
 
 export default Constants;

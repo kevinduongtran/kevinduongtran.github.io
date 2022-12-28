@@ -8,24 +8,23 @@ import { inject, ref } from "vue";
 import firebase from "./services/firebase";
 import emitter from "./services/eventBus";
 import store from "./store/data";
+import userService from "./services/user";
+import locationService from "./services/location";
+import Constants from "./services/constants";
 
 export default {
-  methods: {
-    showModal: (self) => {
-      let thisModal = ref(null);
-      thisModal.value.show();
-    },
-  },
+  methods: {},
   async mounted() {
-    firebase.Init();
-    // let val: Room = await firebase.GetValue("rooms/0");
-    // this.$store.commit("save", val);
-
-    firebase.Subscribe("rooms/0", (snap: Room) => store.commit("save", snap));
-
+    userService.Init();
+    locationService.Init();
+    let loc = await locationService.GetLocation();
+    console.log(loc);
+    firebase.Subscribe("rooms/0", (snap: Room) =>
+      store.commit("saveData", snap)
+    );
     emitter.on("toggle-modal", () => {
       let thisModal = ref(null);
-      thisModal.value.show();
+      thisModal.value?.show();
     });
   },
 };
@@ -35,7 +34,6 @@ export default {
   <NavBar></NavBar>
   <SideBar></SideBar>
   <!-- <Map></Map> -->
-  <button @click="showModal">Show Modal</button>
   <Modal title="Model title goes here" ref="thisModal"> </Modal>
 </template>
 

@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { Modal } from "bootstrap";
 import emitter from "../services/eventBus";
+import type { ModalOptions } from "@/models/data";
 
 let modalEle = ref(null);
 let form = ref(null);
@@ -41,25 +42,9 @@ function _save() {
 }
 
 defineExpose({ show: _show });
-
-export interface ModalOptions {
-  title?: string;
-  bodyText?: string;
-  form?: ModalFormType[];
-  onCloseCallback?: any;
-  hasCloseButton: bool;
-  submitText: string;
-}
-export interface ModalFormType {
-  type: string;
-  id: string;
-  value?: undefined;
-  label: string;
-}
 </script>
 
 <template>
-  <button @click="_show">Test</button>
   <div
     class="modal fade"
     id="exampleModal"
@@ -83,31 +68,32 @@ export interface ModalFormType {
         </div>
         <div class="modal-body">
           {{ modalOptions.bodyText }}
-          <form
-            ref="form"
-            v-if="modalOptions.form?.length > 0"
-            v-for="form in modalOptions.form"
-            class="needs-validation"
-            novalidate
-            :key="form.label"
-          >
-            <!--  -->
-            <label for="validationDefaultUsername" class="form-label">{{
-              form.label
-            }}</label>
-            <div class="input-group">
-              <input
-                type="text"
-                class="form-control"
-                id="validationDefaultUsername"
-                v-model="form.value"
-                required
-              />
-            </div>
-            <div class="invalid-feedback">Please choose a username.</div>
+          <div v-if="modalOptions.form?.length > 0">
+            <form
+              ref="form"
+              v-for="form in modalOptions.form"
+              class="needs-validation"
+              novalidate
+              :key="form.label"
+            >
+              <!--  -->
+              <label for="validationDefaultUsername" class="form-label">{{
+                form.label
+              }}</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="validationDefaultUsername"
+                  v-model="form.value"
+                  required
+                />
+              </div>
+              <div class="invalid-feedback">Please choose a username.</div>
 
-            <!--  -->
-          </form>
+              <!--  -->
+            </form>
+          </div>
         </div>
         <div class="modal-footer">
           <slot name="footer"></slot>

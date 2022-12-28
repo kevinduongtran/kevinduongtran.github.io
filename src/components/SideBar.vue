@@ -3,13 +3,62 @@ import firebase from "../services/firebase";
 import emitter from "../services/eventBus";
 import store from "../store/data";
 import * as bootstrap from "bootstrap";
-import type { ModalOptions } from "./Modal.vue";
+import type { ModalOptions, Team } from "@/models/data";
+import userService from "@/services/user";
 
 export default {
   methods: {
-    JoinSquad: (teamIndex: number, squadIndex: number) => {
-      console.log("join", teamIndex, squadIndex);
-      let updates: object = {};
+    JoinSquad: async (teamIndex: number, squadIndex: number) => {
+      let teams: Team[] = store.getters.allData.teams;
+      let updates: any = {};
+
+      let playersInNewSquad = teams[teamIndex].squads[squadIndex].players;
+
+      // check if player alreay in squad
+      if (
+        playersInNewSquad &&
+        playersInNewSquad.some(
+          (player) => player.sessionId == store.getters.sessionId
+        )
+      ) {
+        return;
+      }
+
+      // clear out current user path
+      let playerPath = store.getters.userPath;
+      if (playerPath) {
+        updates[playerPath] = null;
+      }
+
+      // if there are no players in squad, just add the player as a squad leader
+      // otherwise, append player to list
+      if (playersInNewSquad == null) {
+        updates[`rooms/0/teams/${teamIndex}/squads/${squadIndex}/players`] = [
+          store.getters.user,
+        ];
+      } else {
+        playersInNewSquad.push(store.getters.user);
+        updates[`rooms/0/teams/${teamIndex}/squads/${squadIndex}/players/`] =
+          playersInNewSquad;
+      }
+      await firebase.UpdateValues(updates);
+
+      // assign squad leaders
+      let data = await firebase.GetValue("rooms/0");
+
+      for (let t = 0; t < data.teams.length; t++) {
+        const team = data.teams[t];
+        for (let s = 0; s < team.squads.length; s++) {
+          let players = data.teams[t].squads[s].players;
+          if (players) {
+            players = players.filter(function () {
+              return true;
+            });
+            data.teams[t].squads[s].players = players;
+          }
+        }
+      }
+      await firebase.SetValue("rooms/0", data);
     },
     openModal() {
       let options: ModalOptions = {
@@ -19,17 +68,84 @@ export default {
             id: "username",
             label: "Username",
             type: "text",
+            value: store.getters.username,
           },
         ],
         hasCloseButton: false,
         submitText: "Save",
         onCloseCallback: (modalOptions: ModalOptions) => {
-          console.log(modalOptions);
+          if (modalOptions.form && modalOptions.form[0].value)
+            userService.CacheUser(modalOptions.form[0].value);
         },
       };
       emitter.emit("open-modal", options);
     },
+    async resetDB() {
+      console.log("reset");
+      await firebase.SetValue("/", {
+        rooms: [
+          {
+            gamemode: "TDM",
+            roomId: "ea3f1eaf-f712-44eb-bd47-a2e783df974e",
+            roomName: "Cement Factory",
+            map: {
+              name: "LVPP",
+              location: {
+                lat: 36.1390106,
+                long: -115.1765157,
+              },
+              zoom: 10,
+            },
+            teams: [
+              {
+                id: "efdcb41b-15ba-4b6a-8833-8eafe744e770",
+                squads: [
+                  {
+                    id: "8fa53299-5b1e-4e34-a679-37b8c1b72124",
+                    players: [],
+                    squadNumber: 1,
+                  },
+                  {
+                    id: "514a5efc-149f-4d71-bbd1-9534d0bb6518",
+                    players: [],
+                    squadNumber: 2,
+                  },
+                  {
+                    id: "35633482-b82a-4852-a66e-697d82bd3121",
+                    players: [],
+                    squadNumber: 3,
+                  },
+                ],
+                teamName: "BLUFOR",
+              },
+              {
+                id: "opfor123",
+                squads: [
+                  {
+                    id: "17cf4d12-3115-4a44-9964-c5c4f3ee49f5",
+                    players: [],
+                    squadNumber: 1,
+                  },
+                  {
+                    id: "cb64b16a-93c5-406e-83d7-a1d576b26c70",
+                    players: [],
+                    squadNumber: 2,
+                  },
+                  {
+                    id: "2fd3ad96-3dc4-4f12-b728-48f4f7389ba2",
+                    players: [],
+                    squadNumber: 3,
+                  },
+                ],
+                teamName: "OPFOR",
+              },
+            ],
+          },
+        ],
+      });
+    },
   },
+
   mounted() {
     emitter.on("toggle-sidebar", () => {
       let offCanvasElement = document.getElementById("offcanvasExample");
@@ -92,7 +208,6 @@ export default {
           @click="openModal"
           id="username-display"
         >
-          test
           {{ $store.getters.username }}
         </h5>
 
@@ -116,7 +231,7 @@ export default {
         </button>
         <button
           class="btn btn-sm btn-outline-primary d-inline float-end me-2 dev-only"
-          id="reset-db-button"
+          @click="resetDB"
           type="button"
         >
           <i class="bi bi-database-gear"></i>
