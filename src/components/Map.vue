@@ -89,7 +89,31 @@ export default {
       >
         <l-icon>
           <div class="icon">
-            <img :src="`src/assets/${marker.iconType}.svg`" />
+            <img v-if="marker.iconType == `me`" src="../assets/me.svg" />
+            <img
+              v-if="marker.iconType == `me-squad-leader`"
+              src="../assets/me-squad-leader.svg"
+            />
+            <img
+              v-if="marker.iconType == `squad-leader`"
+              src="../assets/squad-leader.svg"
+            />
+            <img
+              v-if="marker.iconType == `squadmate-squad-leader`"
+              src="../assets/squadmate-squad-leader.svg"
+            />
+            <img
+              v-if="marker.iconType == `squad-member`"
+              src="../assets/squad-member.svg"
+            />
+            <img
+              v-if="marker.iconType == `team-member`"
+              src="../assets/team-member.svg"
+            />
+            <img
+              v-if="marker.iconType == `team-squad-leader`"
+              src="../assets/team-member.svg"
+            />
             <span
               v-if="marker.iconType.includes('leader')"
               class="squadNumber"
@@ -105,7 +129,7 @@ export default {
       >
         <l-icon>
           <div class="icon">
-            <img class="enemy-marker" :src="`src/assets/enemy.svg`" />
+            <img class="enemy-marker" src="../assets/enemy.svg" />
             <!-- <span class="distance">{{
               MarkerDistance(marker.lat, marker.long)
             }}</span> -->

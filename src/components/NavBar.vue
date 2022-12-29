@@ -31,7 +31,7 @@ export default {
   <div class="container">
     <span class="clock">{{ time }}</span>
     <button
-      class="open-side-bar btn btn-primary m-2"
+      class="open-side-bar btn btn-sm btn-primary m-1"
       type="button"
       @click="openOffCanvas()"
     >
@@ -57,11 +57,11 @@ export default {
   text-align: center;
   left: 0;
   top: -5px;
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: rgba(0, 0, 0, 0.4);
   width: calc(100%);
   font-family: glassGauge;
-  color: var(--bs-green);
-  font-size: 3em;
-  text-shadow: 2px 2px black;
+  color: #00ff67;
+  font-size: 2em;
+  text-shadow: 2px 2px #036d2e;
 }
 </style>

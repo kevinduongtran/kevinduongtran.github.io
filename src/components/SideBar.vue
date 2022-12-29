@@ -66,25 +66,6 @@ export default {
     },
     openModal() {
       let options: ModalOptions = {
-        title: "Change Username",
-        form: [
-          {
-            id: "username",
-            label: "Username",
-            type: "text",
-            value: store.getters.username,
-          },
-          {
-            id: "useGPS",
-            label: "GPS Tracking",
-            type: "switch",
-            description:
-              "By turning on GPS tracking, you will be able to share your current location with your teammates.",
-            value: store.getters.useGPS,
-          },
-        ],
-        hasCloseButton: false,
-        submitText: "Save",
         onCloseCallback: (modalOptions: ModalOptions) => {
           if (modalOptions.form && modalOptions.form[0].value)
             userService.CacheUser(
@@ -93,7 +74,12 @@ export default {
             );
         },
       };
-      emitter.emit("open-modal", options);
+      emitter.emit(
+        "open-settings-modal",
+        (username: string, useGPS: boolean) => {
+          userService.CacheUser(username, useGPS);
+        }
+      );
     },
     async resetDB() {
       console.log("reset");

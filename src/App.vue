@@ -1,7 +1,7 @@
 <script lang="ts">
 import NavBar from "./components/NavBar.vue";
 import SideBar from "./components/SideBar.vue";
-// import Modal from "./components/Modal.vue";
+import SettingsModal from "./components/SettingsModal.vue";
 import Map from "./components/Map.vue";
 import type { Room, Player } from "./models/data";
 import { inject, ref } from "vue";
@@ -39,12 +39,7 @@ export default {
   <NavBar></NavBar>
   <SideBar></SideBar>
   <Map></Map>
-  <Modal title="Model title goes here" ref="thisModal"> </Modal>
+  <SettingsModal> </SettingsModal>
 </template>
 
-<style>
-@font-face {
-  font-family: glassGauge;
-  src: url("./src/assets/glass-gauge.ttf");
-}
-</style>
+<style></style>
