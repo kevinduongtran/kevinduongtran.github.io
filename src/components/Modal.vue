@@ -3,15 +3,16 @@ import { onMounted, ref } from "vue";
 import { Modal } from "bootstrap";
 import emitter from "../services/eventBus";
 import type { ModalOptions } from "@/models/data";
+import type { Ref } from "vue";
 
 let modalEle = ref(null);
-let form = ref(null);
-let thisModalObj: Modal = null;
+let form = ref<HTMLFormElement>();
+let thisModalObj: Modal;
 
 let modalOptions: Ref<ModalOptions> = ref({});
 
 onMounted(() => {
-  thisModalObj = new Modal(modalEle.value);
+  thisModalObj = new Modal(modalEle.value!);
   emitter.on("open-modal", (options) => {
     modalOptions.value = options as ModalOptions;
     _show();
@@ -23,11 +24,11 @@ function _show() {
 }
 
 function _save() {
-  if (modalOptions.value.form) {
+  if (modalOptions.value.form && form != null && form.value != null) {
     let el = form.value[0];
-    if (!el.checkValidity()) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (!(el as HTMLSelectElement).checkValidity()) {
+      event!.preventDefault();
+      event!.stopPropagation();
     } else {
       thisModalObj.hide();
     }
@@ -68,7 +69,13 @@ defineExpose({ show: _show });
         </div>
         <div class="modal-body">
           {{ modalOptions.bodyText }}
-          <div v-if="modalOptions.form?.length > 0">
+          <div
+            v-if="
+              modalOptions != undefined &&
+              modalOptions.form != undefined &&
+              modalOptions.form.length > 0
+            "
+          >
             <form
               ref="form"
               v-for="form in modalOptions.form"
@@ -76,21 +83,43 @@ defineExpose({ show: _show });
               novalidate
               :key="form.label"
             >
-              <!--  -->
-              <label for="validationDefaultUsername" class="form-label">{{
-                form.label
-              }}</label>
-              <div class="input-group">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="validationDefaultUsername"
-                  v-model="form.value"
-                  required
-                />
+              <div v-if="form.type == `text`" class="mb-4">
+                <!--Input -->
+                <label for="validationDefaultUsername" class="form-label">{{
+                  form.label
+                }}</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="validationDefaultUsername"
+                    v-model="form.value"
+                    required
+                  />
+                </div>
+                <div class="invalid-feedback">Please choose a username.</div>
               </div>
-              <div class="invalid-feedback">Please choose a username.</div>
 
+              <!--Switch -->
+
+              <div v-if="form.type == `switch`" class="mb-2">
+                <label for="validationDefaultUsername" class="form-label">{{
+                  form.label
+                }}</label>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="flexSwitchCheckDefault"
+                    v-model="form.value"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="flexSwitchCheckDefault"
+                    >{{ form.description }}</label
+                  >
+                </div>
+              </div>
               <!--  -->
             </form>
           </div>

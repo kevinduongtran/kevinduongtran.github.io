@@ -8,7 +8,15 @@ export const firebaseApp = initializeApp({
   messagingSenderId: "278955153095",
   appId: "1:278955153095:web:dc491f9539c91be1e0d0e2",
 });
-import { getDatabase, ref, get, onValue, update, set } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  get,
+  onValue,
+  update,
+  set,
+  remove,
+} from "firebase/database";
 
 const db = getDatabase(firebaseApp);
 
@@ -28,6 +36,9 @@ const firebase = {
   SetValue: async (path: string, object: object) => {
     const reference = ref(db, path);
     await set(reference, object);
+  },
+  async DeleteValue(path: string) {
+    await remove(ref(db, path));
   },
   // GetPlayerPath: (data: Room) => {
   //   try {

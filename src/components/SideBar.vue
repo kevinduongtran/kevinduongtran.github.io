@@ -5,6 +5,7 @@ import store from "../store/data";
 import * as bootstrap from "bootstrap";
 import type { ModalOptions, Team } from "@/models/data";
 import userService from "@/services/user";
+import locationService from "@/services/location";
 
 export default {
   methods: {
@@ -30,21 +31,24 @@ export default {
         updates[playerPath] = null;
       }
 
+      let user = { ...store.getters.user, location: store.getters.location };
+
       // if there are no players in squad, just add the player as a squad leader
       // otherwise, append player to list
       if (playersInNewSquad == null) {
         updates[`rooms/0/teams/${teamIndex}/squads/${squadIndex}/players`] = [
-          store.getters.user,
+          user,
         ];
       } else {
-        playersInNewSquad.push(store.getters.user);
+        playersInNewSquad.push(user);
         updates[`rooms/0/teams/${teamIndex}/squads/${squadIndex}/players/`] =
           playersInNewSquad;
       }
+
       await firebase.UpdateValues(updates);
 
       // assign squad leaders
-      let data = await firebase.GetValue("rooms/0");
+      let data = store.getters.allData;
 
       for (let t = 0; t < data.teams.length; t++) {
         const team = data.teams[t];
@@ -70,12 +74,23 @@ export default {
             type: "text",
             value: store.getters.username,
           },
+          {
+            id: "useGPS",
+            label: "GPS Tracking",
+            type: "switch",
+            description:
+              "By turning on GPS tracking, you will be able to share your current location with your teammates.",
+            value: store.getters.useGPS,
+          },
         ],
         hasCloseButton: false,
         submitText: "Save",
         onCloseCallback: (modalOptions: ModalOptions) => {
           if (modalOptions.form && modalOptions.form[0].value)
-            userService.CacheUser(modalOptions.form[0].value);
+            userService.CacheUser(
+              modalOptions.form[0].value!,
+              modalOptions.form[1].value!
+            );
         },
       };
       emitter.emit("open-modal", options);
@@ -96,9 +111,11 @@ export default {
               },
               zoom: 10,
             },
+            spotDurationMS: 15000,
             teams: [
               {
                 id: "efdcb41b-15ba-4b6a-8833-8eafe744e770",
+                markers: {},
                 squads: [
                   {
                     id: "8fa53299-5b1e-4e34-a679-37b8c1b72124",
@@ -120,6 +137,7 @@ export default {
               },
               {
                 id: "opfor123",
+                markers: {},
                 squads: [
                   {
                     id: "17cf4d12-3115-4a44-9964-c5c4f3ee49f5",
@@ -144,12 +162,15 @@ export default {
         ],
       });
     },
+    async Disconnect() {
+      await userService.Disconnect();
+    },
   },
 
   mounted() {
     emitter.on("toggle-sidebar", () => {
       let offCanvasElement = document.getElementById("offcanvasExample");
-      let offCanvas = new bootstrap.Offcanvas(offCanvasElement);
+      let offCanvas = new bootstrap.Offcanvas(offCanvasElement!);
       offCanvas.toggle();
     });
   },
@@ -215,6 +236,7 @@ export default {
           class="btn btn-sm btn-outline-primary d-inline float-end me-2"
           id="disconnect-button"
           type="button"
+          @click="Disconnect()"
         >
           <i class="bi bi-box-arrow-right"></i>
         </button>

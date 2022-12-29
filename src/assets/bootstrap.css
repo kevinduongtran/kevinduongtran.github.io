@@ -86,6 +86,8 @@
   --bs-link-hover-color: #cccccc;
   --bs-code-color: #e83e8c;
   --bs-highlight-bg: #feeacd;
+  --m-width: 1em;
+  --m-height: 1em;
 }
 .squad-number {
   position: absolute;
@@ -2439,8 +2441,8 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(58, 63, 68, 0.25);
 }
 .form-check-input:checked {
-  background-color: #3a3f44;
-  border-color: #3a3f44;
+  background-color: var(--bs-green);
+  border-color: var(--bs-green);
 }
 .form-check-input:checked[type="checkbox"] {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");

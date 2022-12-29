@@ -5,6 +5,7 @@ export interface Room {
   roomId: string;
   roomName: string;
   teams: Team[];
+  spotDurationMS: number;
 }
 
 export interface Map {
@@ -22,14 +23,17 @@ export interface Team {
   id: string;
   teamName: string;
   squads: Squad[];
+  markers: MarkerData[];
 }
 
 export interface Player {
   iconType?: string;
   location?: Location;
-  sessionId?: string;
+  sessionId: string;
   squadNumber?: number;
   username?: string;
+  markers?: MarkerData[];
+  useGPS?: boolean;
 }
 
 export interface Squad {
@@ -43,8 +47,8 @@ export interface ModalOptions {
   bodyText?: string;
   form?: ModalFormType[];
   onCloseCallback?: any;
-  hasCloseButton: boolean;
-  submitText: string;
+  hasCloseButton?: boolean;
+  submitText?: string;
 }
 
 export interface ModalFormType {
@@ -52,4 +56,15 @@ export interface ModalFormType {
   id: string;
   value?: undefined;
   label: string;
+  description?: string;
+}
+
+export interface MarkerData {
+  squadNumber?: number;
+  iconType?: string;
+  lat?: number;
+  long?: number;
+  id?: string;
+  owner?: string;
+  createTime?: number;
 }
